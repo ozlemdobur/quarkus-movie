@@ -1,4 +1,4 @@
-package org.gs;
+package org.gs.director;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -18,10 +18,10 @@ public class DirectorResource {
 
     @POST
     @Transactional
-    public Response create(Director director){
-        repository.persist(director);
-        if(repository.isPersistent(director)){
-            return Response.created(URI.create("/movies/"+ director.getId())).entity(director).build();
+    public Response create(DirectorEntity directorEntity){
+        repository.persist(directorEntity);
+        if(repository.isPersistent(directorEntity)){
+            return Response.created(URI.create("/movies/"+ directorEntity.getId())).entity(directorEntity).build();
         }
         return Response.status(BAD_REQUEST).build();
     }

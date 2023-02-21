@@ -1,12 +1,10 @@
-package org.gs;
+package org.gs.movie;
 
-import io.quarkus.hibernate.orm.panache.Panache;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.hibernate.annotations.NotFound;
 
 import java.net.URI;
 import java.util.List;
@@ -20,17 +18,17 @@ import static org.jboss.resteasy.reactive.RestResponse.StatusCode.NOT_FOUND;
 @Consumes(MediaType.APPLICATION_JSON)
 public class MovieResource {
     @Inject
-    MovieRepository repository;
+    MovieService movieService;
     @GET
     public Response getAll() {
-        List<Movie> movies = repository.listAll();
-        return Response.ok(movies).build();
+        List<MovieView> movieEntities = movieService.listAll();
+        return Response.ok(movieEntities).build();
     }
 
     @GET
     @Path("{id}")
     public Response getById(@PathParam("id") Long id){
-        return repository.findByIdOptional(id)
+        return movieService.findByIdOptional(id)
                 .map(movie -> Response.ok(movie).build())
                 .orElse(Response.status(NOT_FOUND).build());
     }
@@ -38,7 +36,7 @@ public class MovieResource {
     @GET
     @Path("title/{title}")
     public Response getByTitle(@PathParam("title") String title){
-        return repository.find("title", title)
+        return movieService.find("title", title)
                 .singleResultOptional()
                 .map(movie -> Response.ok(movie).build())
                 .orElse(Response.status(NOT_FOUND).build());
@@ -47,20 +45,20 @@ public class MovieResource {
     @GET
     @Path("country/{country}")
     public Response getByCountry(@PathParam("country") String country){
-        List<Movie> movies = repository.findByCountry(country);
-        if(movies.isEmpty()){
+        List<MovieEntity> movieEntities = movieService.findByCountry(country);
+        if(movieEntities.isEmpty()){
             return Response.status(Response.Status.NO_CONTENT).build();
         }
-        return Response.ok(movies).build();
+        return Response.ok(movieEntities).build();
 
     }
 
     @POST
     @Transactional
-    public Response create(Movie movie){
-        repository.persist(movie);
-        if(repository.isPersistent(movie)){
-            return Response.created(URI.create("/movies/"+ movie.getId())).entity(movie).build();
+    public Response create(MovieView movieView){
+        movieService.persist(movieView);
+        if(movieService.isPersistent(movieView)){
+            return Response.created(URI.create("/movies/"+ movieView.getId())).entity(movieView).build();
         }
         return Response.status(BAD_REQUEST).build();
     }
@@ -69,37 +67,37 @@ public class MovieResource {
     @Transactional
     @Path("{id}")
     public Response deleteById(@PathParam("id") Long id){
-        boolean deleted = repository.deleteById(id);
+        boolean deleted = movieService.deleteById(id);
         return deleted ? Response.noContent().build() : Response.status(NOT_FOUND).build();
     }
 
     @PUT
     @Transactional
     @Path("{id}")
-    public Response update (@PathParam("id") Long id, Movie movie){
-        if (movie == null || movie.getId() == null) {
+    public Response update (@PathParam("id") Long id, MovieEntity movieEntity){
+        if (movieEntity == null || movieEntity.getId() == null) {
             return Response.status(NOT_FOUND).build();
         }
-        Optional<Movie> optionalMovie = repository.findByIdOptional(id);
+        Optional<MovieView> optionalMovie = movieService.findByIdOptional(id);
         if(!optionalMovie.isPresent()){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if(!id.equals(movie.getId())){
+        if(!id.equals(movieEntity.getId())){
             return Response.status(Response.Status.CONFLICT).build();
         }
 
-        Movie entity = optionalMovie.get();
+        MovieView view = optionalMovie.get();
 
 
-        entity.setDescription(movie.getDescription());
-        entity.setCountry(movie.getCountry());
-        entity.setTitle(movie.getTitle());
+        view.setDescription(movieEntity.getDescription());
+        view.setCountry(movieEntity.getCountry());
+        view.setTitle(movieEntity.getTitle());
         //entity.setActors(movie.getActors());
 
-        repository.persist(entity);
+        movieService.persist(view);
 
-        return Response.ok(entity).build();
+        return Response.ok(view).build();
 
     }
 

@@ -1,4 +1,4 @@
-package org.gs;
+package org.gs.actor;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

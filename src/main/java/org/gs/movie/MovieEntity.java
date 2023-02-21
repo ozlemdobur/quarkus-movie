@@ -1,21 +1,22 @@
-package org.gs;
+package org.gs.movie;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.gs.director.DirectorEntity;
 
 import java.util.Objects;
 
+@Table(name = "movie")
 @Entity
-public class Movie {
+public class MovieEntity {
 
     @ManyToOne
-    @JsonIgnore
     @JoinColumn(name = "director_id", referencedColumnName = "id")
-    private Director director;
+    private DirectorEntity directorEntity;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(generator = "seq_movie")
     @SequenceGenerator(name = "seq_movie", sequenceName = "seq_movie", allocationSize = 1, initialValue = 1)
     private Long id;
     @Column(length = 100)
@@ -58,33 +59,29 @@ public class Movie {
         this.country = country;
     }
 
-    public Director getDirector() {
-        return director;
+    public DirectorEntity getDirector() {
+        return directorEntity;
     }
 
-    public void setDirector(Director director) {
-        this.director = director;
-    }
-
-
-    @Override
-    public boolean equals(Object o){
-        if(this == o){
-            return true;
-        }
-        if(!(o instanceof Movie)){
-            return false;
-        }
-        Movie other = (Movie) o;
-        return Objects.equals(id, other.id);
+    public void setDirector(DirectorEntity directorEntity) {
+        this.directorEntity = directorEntity;
     }
 
     @Override
-    public int hashCode(){
-        return 31;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MovieEntity movieEntity = (MovieEntity) o;
+        return directorEntity.equals(movieEntity.directorEntity) && id.equals(movieEntity.id) && Objects.equals(title, movieEntity.title) && Objects.equals(description, movieEntity.description) && Objects.equals(country, movieEntity.country);
     }
 
-    /*    public List<Actor> getActors() {
+    @Override
+    public int hashCode() {
+        return Objects.hash(directorEntity, id, title, description, country);
+    }
+
+
+/*    public List<Actor> getActors() {
         return actors;
     }
 
