@@ -2,6 +2,7 @@ package org.gs.movie;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import org.gs.director.DirectorEntity;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,6 @@ import static org.hamcrest.CoreMatchers.is;
 public class MovieEntityResourceTest {
 
     @Test
-    @Disabled
     public void getAll_success() {
         given()
           .when().get("/movies")
@@ -30,12 +30,10 @@ public class MovieEntityResourceTest {
     }
 
     @Test
-    @Disabled
     public void getById_fail(){
         given().when().get("/movies/10000000").then().statusCode(404);
     }
     @Test
-    @Disabled
     public void getByTitle_success(){
         MovieEntity movieEntity = given().when().get("/movies/title/Cherry").then().statusCode(200).extract().as(MovieEntity.class);
         Assertions.assertNotNull(movieEntity);
@@ -43,13 +41,11 @@ public class MovieEntityResourceTest {
         Assertions.assertEquals("Cherry", movieEntity.getTitle());
     }
     @Test
-    @Disabled
     public void getByTitle_fail(){
         given().when().get("/movies/title/Apple").then().statusCode(404);
     }
 
     @Test
-    @Disabled
     public void getByCountry_success(){
         MovieEntity[] movieEntityList = given().when().get("/movies/country/NL").then().statusCode(200).extract().as(MovieEntity[].class);
         Assertions.assertNotNull(movieEntityList);
@@ -60,13 +56,11 @@ public class MovieEntityResourceTest {
         Assertions.assertEquals("NL", movieEntity.getCountry());
     }
     @Test
-    @Disabled
     public void getByCountry_fail(){
         given().when().get("/movies/country/AAAAA").then().statusCode(204);
     }
 
     @Test
-    @Disabled
     public void update_conflict(){
         MovieEntity movieEntity = new MovieEntity();
         movieEntity.setId(4544L);
@@ -75,19 +69,17 @@ public class MovieEntityResourceTest {
     }
 
     @Test
-    @Disabled
     public void update_notfound(){
         given().when().put("/movies/4544").then().statusCode(404);
     }
 
     @Test
-    @Disabled
-    //@Disabled
     public void insert_update_success(){
         MovieEntity movieEntity = new MovieEntity();
         movieEntity.setTitle("Titanic");
         movieEntity.setDescription("Description");
         movieEntity.setCountry("NL");
+        movieEntity.setDirector(new DirectorEntity(1L));
 
         // Test insert
         MovieEntity entity = given().contentType(ContentType.JSON).body(movieEntity).post("/movies").then().statusCode(201).extract().as(MovieEntity.class);

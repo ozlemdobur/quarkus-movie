@@ -9,6 +9,21 @@ public class DirectorView {
     private String lastName;
     private String country;
 
+
+    public DirectorView() {
+    }
+
+    public DirectorView(Long id) {
+        this.id = id;
+    }
+
+    public DirectorView(Long id, String firstName, String lastName, String country) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.country = country;
+    }
+
     public Long getId() {
         return id;
     }

@@ -9,5 +9,5 @@ public interface DirectorMapper {
     DirectorMapper INSTANCE = Mappers.getMapper(DirectorMapper.class);
 
     DirectorView directorEntityToDirectorView(DirectorEntity directorEntity);
-    //DirectorEntity directorViewToDirectorEntity(DirectorView directorView);
+    DirectorEntity directorViewToDirectorEntity(DirectorView directorView);
 }

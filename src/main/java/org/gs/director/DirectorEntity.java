@@ -19,10 +19,14 @@ public class DirectorEntity {
     private String lastName;
     private String country;
     //orphanRemoval = true,
-    @OneToMany(mappedBy = "directorEntity", cascade = CascadeType.ALL,  fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "directorEntity", cascade = CascadeType.ALL)
     List<MovieEntity> movieEntities;
 
     public DirectorEntity() {
+    }
+
+    public DirectorEntity(Long id) {
+        this.id = id;
     }
 
     public DirectorEntity(String firstName, String lastName, String country, List<MovieEntity> movieEntities) {
@@ -30,6 +34,13 @@ public class DirectorEntity {
         this.lastName = lastName;
         this.country = country;
         this.movieEntities = movieEntities;
+    }
+
+    public DirectorEntity(Long id, String firstName, String lastName, String country) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.country = country;
     }
 
     public Long getId() {

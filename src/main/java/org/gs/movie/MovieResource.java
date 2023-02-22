@@ -5,6 +5,8 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.gs.director.DirectorEntity;
+import org.gs.director.DirectorView;
 
 import java.net.URI;
 import java.util.List;
@@ -21,25 +23,36 @@ public class MovieResource {
     MovieService movieService;
     @GET
     public Response getAll() {
-        List<MovieView> movieEntities = movieService.listAll();
-        return Response.ok(movieEntities).build();
+        List<MovieEntity> movieEntities = movieService.listAll();
+        return Response.ok(MovieMapper.INSTANCE.movieEntityToMovieViews(movieEntities)).build();
     }
 
     @GET
     @Path("{id}")
     public Response getById(@PathParam("id") Long id){
         return movieService.findByIdOptional(id)
-                .map(movie -> Response.ok(movie).build())
+                .map(movie -> MovieMapper.INSTANCE.movieEntityToMovieView(movie))
+                .map(movie->Response.ok(movie).build())
                 .orElse(Response.status(NOT_FOUND).build());
     }
 
     @GET
     @Path("title/{title}")
     public Response getByTitle(@PathParam("title") String title){
-        return movieService.find("title", title)
-                .singleResultOptional()
+        return movieService.find(title)
+                .map(movie->MovieMapper.INSTANCE.movieEntityToMovieView(movie))
                 .map(movie -> Response.ok(movie).build())
                 .orElse(Response.status(NOT_FOUND).build());
+    }
+    @POST
+    @Transactional
+    public Response create(MovieEntity movieEntity){
+        MovieEntity createdMovieEntity = movieService.persist(movieEntity);
+        MovieView movieView = MovieMapper.INSTANCE.movieEntityToMovieView(createdMovieEntity);
+        if(movieService.isPersistent(movieEntity)){
+            return Response.created(URI.create("/movies/"+ movieView.getId())).entity(movieView).build();
+        }
+        return Response.status(BAD_REQUEST).build();
     }
 
     @GET
@@ -49,18 +62,7 @@ public class MovieResource {
         if(movieEntities.isEmpty()){
             return Response.status(Response.Status.NO_CONTENT).build();
         }
-        return Response.ok(movieEntities).build();
-
-    }
-
-    @POST
-    @Transactional
-    public Response create(MovieView movieView){
-        movieService.persist(movieView);
-        if(movieService.isPersistent(movieView)){
-            return Response.created(URI.create("/movies/"+ movieView.getId())).entity(movieView).build();
-        }
-        return Response.status(BAD_REQUEST).build();
+        return Response.ok(MovieMapper.INSTANCE.movieEntityToMovieViews(movieEntities)).build();
     }
 
     @DELETE
@@ -74,30 +76,32 @@ public class MovieResource {
     @PUT
     @Transactional
     @Path("{id}")
-    public Response update (@PathParam("id") Long id, MovieEntity movieEntity){
-        if (movieEntity == null || movieEntity.getId() == null) {
+    public Response update (@PathParam("id") Long id, MovieView movieView){
+
+        if (movieView == null || movieView.getId() == null) {
             return Response.status(NOT_FOUND).build();
         }
-        Optional<MovieView> optionalMovie = movieService.findByIdOptional(id);
-        if(!optionalMovie.isPresent()){
+        Optional<MovieEntity> optionalMovieEntity = movieService.findByIdOptional(id);
+        if(!optionalMovieEntity.isPresent()){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if(!id.equals(movieEntity.getId())){
+        if(!id.equals(movieView.getId())){
             return Response.status(Response.Status.CONFLICT).build();
         }
 
-        MovieView view = optionalMovie.get();
+        MovieEntity movieEntity = optionalMovieEntity.get();
+        movieEntity.setDescription(movieView.getDescription());
+        movieEntity.setCountry(movieView.getCountry());
+        movieEntity.setTitle(movieView.getTitle());
+        movieEntity.setDirector(new DirectorEntity(movieView.getDirector().getId(),
+                movieView.getDirector().getFirstName(),
+                movieView.getDirector().getLastName(),
+                movieView.getDirector().getCountry()
+                ));
 
-
-        view.setDescription(movieEntity.getDescription());
-        view.setCountry(movieEntity.getCountry());
-        view.setTitle(movieEntity.getTitle());
-        //entity.setActors(movie.getActors());
-
-        movieService.persist(view);
-
-        return Response.ok(view).build();
+        MovieEntity updatedMovieEntity = movieService.persist(movieEntity);
+        return Response.ok(MovieMapper.INSTANCE.movieEntityToMovieView(updatedMovieEntity)).build();
 
     }
 

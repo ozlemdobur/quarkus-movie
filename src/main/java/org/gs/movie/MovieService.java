@@ -3,9 +3,11 @@ package org.gs.movie;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import org.gs.director.DirectorView;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.DoubleStream;
@@ -13,6 +15,8 @@ import java.util.stream.DoubleStream;
 @ApplicationScoped
 public class MovieService {
 
+/*    @Inject
+    MovieMapper movieMapper;*/
     private MovieRepository movieRepository;
 
     @Inject
@@ -20,47 +24,51 @@ public class MovieService {
         this.movieRepository = movieRepository;
     }
 
-    public List<MovieView> listAll(){
-        throw new RuntimeException("Not Implemented");
+    public List<MovieEntity> listAll() {
+        List<MovieEntity> movieEntities = movieRepository.listAll();
+        return movieEntities;
     }
-    public Optional<MovieView> findByIdOptional(Long id){
-       Optional<MovieEntity> optionalMovieEntity = movieRepository.findByIdOptional(id);
-       if(optionalMovieEntity.isEmpty()){
-           return Optional.empty();
-       }
-       // Map MovieEntity to MovieView
-        MovieView movieView = new MovieView();
-       movieView.setId(optionalMovieEntity.get().getId());
-       movieView.setCountry(optionalMovieEntity.get().getCountry());
-       movieView.setDescription(optionalMovieEntity.get().getDescription());
-       movieView.setTitle(optionalMovieEntity.get().getTitle());
 
-        DirectorView directorView = new DirectorView();
-        directorView.setId(optionalMovieEntity.get().getDirector().getId());
+    public Optional<MovieEntity> findByIdOptional(Long id) {
+        Optional<MovieEntity> optionalMovieEntity = movieRepository.findByIdOptional(id);
+        if (optionalMovieEntity.isEmpty()) {
+            return Optional.empty();
+        }
 
-        movieView.setDirector(directorView);
-       return Optional.of(movieView);
+        return optionalMovieEntity;
+    }
 
-   }
-
-
-    public PanacheQuery<Object> find(String title, String title1) {
-        throw new RuntimeException("Not Implemented");
+    public Optional<MovieEntity> find(String title) {
+        Optional<MovieEntity> optionalMovieEntity = movieRepository.find("title", title).singleResultOptional();
+        if (optionalMovieEntity.isEmpty()) {
+            return Optional.empty();
+        }
+        return optionalMovieEntity;
     }
 
     public List<MovieEntity> findByCountry(String country) {
-        throw new RuntimeException("Not Implemented");
+        List<MovieEntity> movieEntity = movieRepository.findByCountry(country);
+        if (movieEntity.isEmpty()) {
+            return List.of();
+        }
+        return movieEntity;
     }
 
-    public boolean isPersistent(MovieView movieView) {
-        throw new RuntimeException("Not Implemented");
+    public boolean isPersistent(MovieEntity movieEntity) {
+       //MovieEntity movieEntity = MovieMapper.INSTANCE.movieViewToMovieEntity(movieView);
+        return movieRepository.isPersistent(movieEntity);
     }
 
-    public void persist(MovieView movieView) {
-        throw new RuntimeException("Not Implemented");
+
+    @Transactional
+    public MovieEntity persist(MovieEntity movieEntity) {
+        //MovieEntity movieEntity = MovieMapper.INSTANCE.movieViewToMovieEntity(movieView);
+        movieRepository.persist(movieEntity);
+        return movieEntity;
     }
 
     public boolean deleteById(Long id) {
-        throw new RuntimeException("Not Implemented");
+        boolean isDeleted = movieRepository.deleteById(id);
+        return isDeleted;
     }
 }
